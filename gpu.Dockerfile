@@ -35,6 +35,7 @@ WORKDIR /app
 COPY --from=packages-builder /app/.venv /app/.venv
 COPY --from=app-builder /app/.venv/lib/python3.12/site-packages /app/.venv/lib/python3.12/site-packages/
 COPY wyoming_onnx_asr/ /app/wyoming_onnx_asr/
+RUN ln -sf /usr/bin/python3.12 /app/.venv/bin/python
 ENV PATH="/app/.venv/bin:$PATH"
 VOLUME /data
 ENV ONNX_ASR_MODEL_DIR="/data"

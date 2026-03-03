@@ -18,6 +18,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 RUN if [ "$TARGETARCH" = "arm64" ]; then \
         uv pip install --python /app/.venv/bin/python \
             https://github.com/jxlarrea/wyoming-onnx-asr/releases/download/v0.5.0/onnxruntime_gpu-1.25.0-cp312-cp312-linux_aarch64.whl ; \
+        uv pip install --python /app/.venv/bin/python 'numpy<2' ; \
     fi
 
 FROM builder-base AS app-builder

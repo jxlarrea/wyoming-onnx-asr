@@ -15,7 +15,6 @@ RUN --mount=type=cache,target=/root/.cache/uv \
         uv sync --locked --no-install-project --no-dev --extra gpu -v ; \
     fi
 
-# On ARM64, install onnxruntime-gpu from pre-built wheel (no PyPI wheel available)
 RUN if [ "$TARGETARCH" = "arm64" ]; then \
         uv pip install --python /app/.venv/bin/python \
             https://github.com/jxlarrea/wyoming-onnx-asr/releases/download/v0.5.0/onnxruntime_gpu-1.25.0-cp312-cp312-linux_aarch64.whl ; \
@@ -28,13 +27,16 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv venv && \
     uv pip install --no-deps .
 
-FROM python:3.12-slim-bookworm
+FROM nvidia/cuda:12.8.1-cudnn-runtime-ubuntu24.04
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3.12 python3.12-venv && \
+    rm -rf /var/lib/apt/lists/*
 WORKDIR /app
-COPY --from=packages-builder --chown=app:app /app/.venv /app/.venv
-COPY --from=app-builder --chown=app:app /app/.venv/lib/python3.12/site-packages /app/.venv/lib/python3.12/site-packages/
+COPY --from=packages-builder /app/.venv /app/.venv
+COPY --from=app-builder /app/.venv/lib/python3.12/site-packages /app/.venv/lib/python3.12/site-packages/
 COPY wyoming_onnx_asr/ /app/wyoming_onnx_asr/
 ENV PATH="/app/.venv/bin:$PATH"
 VOLUME /data
 ENV ONNX_ASR_MODEL_DIR="/data"
-ENTRYPOINT ["python", "-m", "wyoming_onnx_asr", "--device", "gpu"]
+ENTRYPOINT ["python3.12", "-m", "wyoming_onnx_asr", "--device", "gpu"]
 CMD [ "--uri", "tcp://*:10300", "--model-en", "nemo-parakeet-tdt-0.6b-v2" ]

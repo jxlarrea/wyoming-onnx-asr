@@ -17,7 +17,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 # On ARM64, install onnxruntime-gpu from pre-built wheel (no PyPI wheel available)
 RUN if [ "$TARGETARCH" = "arm64" ]; then \
-        /app/.venv/bin/pip install \
+        uv pip install --python /app/.venv/bin/python \
             https://github.com/jxlarrea/wyoming-onnx-asr/releases/download/v0.5.0/onnxruntime_gpu-1.25.0-cp312-cp312-linux_aarch64.whl ; \
     fi
 

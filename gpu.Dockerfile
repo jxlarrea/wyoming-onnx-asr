@@ -15,9 +15,10 @@ RUN --mount=type=cache,target=/root/.cache/uv \
         uv sync --locked --no-install-project --no-dev --extra gpu -v ; \
     fi
 
+# On ARM64, install onnxruntime-gpu from pre-built wheel (no PyPI wheel available)
 RUN if [ "$TARGETARCH" = "arm64" ]; then \
         uv pip install --python /app/.venv/bin/python \
-            https://github.com/jxlarrea/wyoming-onnx-asr/releases/download/v0.5.0/onnxruntime_gpu-1.25.0-cp312-cp312-linux_aarch64.whl ; \
+            https://github.com/jxlarrea/wyoming-onnx-asr/releases/download/v0.5.0/onnxruntime_gpu-1.25.0-cp312-cp312-linux_aarch64.whl && \
         uv pip install --python /app/.venv/bin/python 'numpy<2' ; \
     fi
 
@@ -28,7 +29,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv venv && \
     uv pip install --no-deps .
 
-FROM nvidia/cuda:12.8.1-cudnn-runtime-ubuntu24.04
+FROM nvidia/cuda:13.0.1-cudnn-runtime-ubuntu24.04
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3.12 python3.12-venv && \
     rm -rf /var/lib/apt/lists/*

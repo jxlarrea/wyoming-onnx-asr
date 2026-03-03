@@ -6,8 +6,6 @@ WORKDIR /app
 FROM builder-base AS packages-builder
 ARG TARGETARCH
 
-COPY wheels/ /tmp/wheels/
-
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
@@ -17,10 +15,11 @@ RUN --mount=type=cache,target=/root/.cache/uv \
         uv sync --locked --no-install-project --no-dev --extra gpu -v ; \
     fi
 
+# On ARM64, install onnxruntime-gpu from pre-built wheel (no PyPI wheel available)
 RUN if [ "$TARGETARCH" = "arm64" ]; then \
-        /app/.venv/bin/pip install /tmp/wheels/onnxruntime_gpu-1.25.0-cp312-cp312-linux_aarch64.whl ; \
-    fi && \
-    rm -rf /tmp/wheels
+        /app/.venv/bin/pip install \
+            https://github.com/jxlarrea/wyoming-onnx-asr/releases/download/v0.5.0/onnxruntime_gpu-1.25.0-cp312-cp312-linux_aarch64.whl ; \
+    fi
 
 FROM builder-base AS app-builder
 COPY wyoming_onnx_asr/ ./wyoming_onnx_asr/
